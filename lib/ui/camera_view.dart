@@ -1,4 +1,3 @@
-import 'dart:io';
 import 'dart:isolate';
 
 import 'package:camera/camera.dart';
@@ -68,7 +67,7 @@ class _CameraViewState extends State<CameraView> with WidgetsBindingObserver {
 
     // cameras[0] for rear-camera
     cameraController =
-        CameraController(cameras[0], ResolutionPreset.low, enableAudio: false);
+        CameraController(cameras[0], ResolutionPreset.medium, enableAudio: false);
 
     cameraController.initialize().then((_) async {
       // Stream of image passed to [onLatestImageAvailable] callback
