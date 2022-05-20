@@ -7,8 +7,6 @@ import 'package:object_detection/tflite/recognition.dart';
 import 'package:tflite_flutter/tflite_flutter.dart';
 import 'package:tflite_flutter_helper/tflite_flutter_helper.dart';
 
-import 'stats.dart';
-
 /// Classifier
 class Classifier {
   /// Instance of Interpreter
@@ -39,12 +37,9 @@ class Classifier {
   List<TfLiteType> _outputTypes;
 
   /// Number of results to show
-  static const int NUM_RESULTS = 10;
+  static const int NUM_RESULTS = 12;
 
-  Classifier({
-    Interpreter interpreter,
-    List<String> labels,
-  }) {
+  Classifier({Interpreter interpreter, List<String> labels}) {
     loadModel(interpreter: interpreter);
     loadLabels(labels: labels);
   }
@@ -95,23 +90,16 @@ class Classifier {
 
   /// Runs object detection on the input image
   Map<String, dynamic> predict(imageLib.Image image) {
-    var predictStartTime = DateTime.now().millisecondsSinceEpoch;
-
     if (_interpreter == null) {
       print("Interpreter not initialized");
       return null;
     }
-
-    var preProcessStart = DateTime.now().millisecondsSinceEpoch;
 
     // Create TensorImage from image
     TensorImage inputImage = TensorImage.fromImage(image);
 
     // Pre-process TensorImage
     inputImage = getProcessedImage(inputImage);
-
-    var preProcessElapsedTime =
-        DateTime.now().millisecondsSinceEpoch - preProcessStart;
 
     // TensorBuffers for output tensors
     TensorBuffer outputLocations = TensorBufferFloat(_outputShapes[0]);
@@ -131,13 +119,8 @@ class Classifier {
       3: numLocations.buffer,
     };
 
-    var inferenceTimeStart = DateTime.now().millisecondsSinceEpoch;
-
     // run inference
     _interpreter.runForMultipleInputs(inputs, outputs);
-
-    var inferenceTimeElapsed =
-        DateTime.now().millisecondsSinceEpoch - inferenceTimeStart;
 
     // Maximum number of results to show
     int resultsCount = min(NUM_RESULTS, numLocations.getIntValue(0));
@@ -145,7 +128,7 @@ class Classifier {
     // Using labelOffset = 1 as ??? at index 0
     int labelOffset = 1;
 
-    // Using bounding box utils for easy conversion of tensorbuffer to List<Rect>
+    // Using bounding box utils for easy conversion of tensor buffer to List<Rect>
     List<Rect> locations = BoundingBoxUtils.convert(
       tensor: outputLocations,
       valueIndex: [1, 0, 3, 2],
@@ -179,15 +162,8 @@ class Classifier {
       }
     }
 
-    var predictElapsedTime =
-        DateTime.now().millisecondsSinceEpoch - predictStartTime;
-
     return {
       "recognitions": recognitions,
-      "stats": Stats(
-          totalPredictTime: predictElapsedTime,
-          inferenceTime: inferenceTimeElapsed,
-          preProcessingTime: preProcessElapsedTime)
     };
   }
 

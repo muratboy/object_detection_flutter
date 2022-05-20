@@ -1,8 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:object_detection/tflite/recognition.dart';
-import 'package:object_detection/tflite/stats.dart';
 import 'package:object_detection/ui/box_widget.dart';
-import 'package:object_detection/ui/camera_view_singleton.dart';
 
 import 'camera_view.dart';
 
@@ -15,9 +13,6 @@ class HomeView extends StatefulWidget {
 class _HomeViewState extends State<HomeView> {
   /// Results to draw bounding boxes
   List<Recognition> results;
-
-  /// Realtime stats
-  Stats stats;
 
   /// Scaffold Key
   GlobalKey<ScaffoldState> scaffoldKey = GlobalKey();
@@ -33,73 +28,10 @@ class _HomeViewState extends State<HomeView> {
             // Camera View
             SizedBox(
                 width: MediaQuery.of(context).size.width,
-                height: MediaQuery.of(context).size.height,
-                child: CameraView(resultsCallback, statsCallback)),
-
+                height: MediaQuery.of(context).size.width*4/3,
+                child: CameraView(resultsCallback)),
             // Bounding boxes
             boundingBoxes(results),
-
-            // Heading
-            Align(
-              alignment: Alignment.topLeft,
-              child: Container(
-                padding: EdgeInsets.only(top: 20),
-                child: Text(
-                  'Object Detection Flutter',
-                  textAlign: TextAlign.left,
-                  style: TextStyle(
-                    fontSize: 28,
-                    fontWeight: FontWeight.bold,
-                    color: Colors.deepOrangeAccent.withOpacity(0.6),
-                  ),
-                ),
-              ),
-            ),
-
-            // Bottom Sheet
-            Align(
-              alignment: Alignment.bottomCenter,
-              child: DraggableScrollableSheet(
-                initialChildSize: 0.4,
-                minChildSize: 0.1,
-                maxChildSize: 0.5,
-                builder: (_, ScrollController scrollController) => Container(
-                  width: double.maxFinite,
-                  decoration: BoxDecoration(
-                      color: Colors.white.withOpacity(0.9),
-                      borderRadius: BORDER_RADIUS_BOTTOM_SHEET),
-                  child: SingleChildScrollView(
-                    controller: scrollController,
-                    child: Center(
-                      child: Column(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Icon(Icons.keyboard_arrow_up,
-                              size: 48, color: Colors.orange),
-                          (stats != null)
-                              ? Padding(
-                                  padding: const EdgeInsets.all(8.0),
-                                  child: Column(
-                                    children: [
-                                      StatsRow('Inference time:',
-                                          '${stats.inferenceTime} ms'),
-                                      StatsRow('Total prediction time:',
-                                          '${stats.totalElapsedTime} ms'),
-                                      StatsRow('Pre-processing time:',
-                                          '${stats.preProcessingTime} ms'),
-                                      StatsRow('Frame',
-                                          '${CameraViewSingleton.inputImageSize?.width} X ${CameraViewSingleton.inputImageSize?.height}'),
-                                    ],
-                                  ),
-                                )
-                              : Container()
-                        ],
-                      ),
-                    ),
-                  ),
-                ),
-              ),
-            )
           ],
         ),
       ),
@@ -126,17 +58,6 @@ class _HomeViewState extends State<HomeView> {
       this.results = results;
     });
   }
-
-  /// Callback to get inference stats from [CameraView]
-  void statsCallback(Stats stats) {
-    setState(() {
-      this.stats = stats;
-    });
-  }
-
-  static const BOTTOM_SHEET_RADIUS = Radius.circular(24.0);
-  static const BORDER_RADIUS_BOTTOM_SHEET = BorderRadius.only(
-      topLeft: BOTTOM_SHEET_RADIUS, topRight: BOTTOM_SHEET_RADIUS);
 }
 
 /// Row for one Stats field
